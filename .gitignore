@@ -1,0 +1,31 @@
+# Python pyc
+*.pyc
+
+# wikicode
+wikicode_*
+
+# Voice
+voice_*/
+
+# Json files, except config.json
+voice_*.json
+subtitles*.json
+
+# Log files
+*.log
+
+# Test files
+test.py
+
+# Mac stuff
+*.DS_Store
+
+# Pycharm stuff
+.idea
+
+# vs code stuff
+.vscode
+
+# Python3 venv
+
+venv/
