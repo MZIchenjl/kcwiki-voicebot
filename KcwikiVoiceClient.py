@@ -63,6 +63,8 @@ class KcwikiVoiceClient(KcwikiClient):
     GMT_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
     BOT_FORMAT = '%Y%m%d'
 
+    FILENAME_PATTERN = re.compile(r'[0-9a-z]+-(\S+)\.mp3')
+
     def __init__(self):
         super().__init__()
         self.kcdataJson = None
@@ -139,6 +141,13 @@ class KcwikiVoiceClient(KcwikiClient):
             return True
         else:
             return False
+
+    def __get_voiceName(self, filename):
+        archName = self.FILENAME_PATTERN.match(filename).group(1)
+        for arch in self.voiceId2Name.values():
+            if archName.startswith(arch):
+                return arch
+        return None
 
     async def downloadVoiceById(self, shipInfo, voiceId, voiceCacheUrl):
         shipId = shipInfo['id']
@@ -475,15 +484,18 @@ class KcwikiVoiceClient(KcwikiClient):
                         ))
                         self.uploadVoiceLog.flush()
                         if 'warnings' in resp_json['upload']:
-                            self.uploadVoiceLog.write('{}\n\t{}\n'.format(
-                                resultPrint, json.dumps(
-                                    resp_json['upload']['warnings'])
-                            ))
                             if 'duplicate' in resp_json['upload']['warnings']:
                                 duplicatedWikiFilenames = resp_json['upload']['warnings']['duplicate']
                                 self.voiceDataJson[shipId]['voice_status'][voiceId] = 'duplicate_2'
-                                self.voiceDataJson[shipId]['voice_duplicate'].\
-                                    update({voiceId: duplicatedWikiFilenames})
+                                self.voiceDataJson[shipId]['voice_duplicate'].update(
+                                    {voiceId: duplicatedWikiFilenames})
+                                if len(duplicatedWikiFilenames) > 1:
+                                    self.uploadVoiceLog.write('{}\n\tduplicate: {}\n'.format(
+                                        resultPrint, ', '.join(duplicatedWikiFilenames)))
+                                else:
+                                    if self.__get_voiceName(wikiFilename) != self.__get_voiceName(duplicatedWikiFilenames[0]):
+                                        self.uploadVoiceLog.write('{}\n\tduplicate: {}\n'.format(
+                                            resultPrint, duplicatedWikiFilenames[0]))
                             else:
                                 self.voiceDataJson[shipId]['voice_status'][voiceId] = 'warnings'
                                 self.voiceDataJson[shipId]['voice_upload_info'].\
@@ -492,6 +504,10 @@ class KcwikiVoiceClient(KcwikiClient):
                             self.voiceDataJson[shipId]['voice_status'][voiceId] = 'errors'
                             self.voiceDataJson[shipId]['voice_upload_info'].\
                                 update({voiceId: resp_json['upload']})
+                            self.uploadVoiceLog.write('{}\n\t{}\n'.format(
+                                resultPrint, json.dumps(
+                                    resp_json['upload']['warnings'])
+                            ))
                     with open(self.voiceDataJsonFile, 'w', encoding='utf-8') as fp:
                         json.dump(self.voiceDataJson, fp,
                                   ensure_ascii=False, indent=4)
@@ -539,10 +555,10 @@ class KcwikiVoiceClient(KcwikiClient):
                     ship[1]['chinese_name']
                 ))
                 subtitleJp = '' if ship[1]['ship_id'] not in self.subtitlesJp or\
-                    ship[1]['voice_id'] not in self.subtitlesJp[ship[1]['ship_id']] \
+                    ship[1]['voice_id'] not in self.subtitlesJp[ship[1]['ship_id']]\
                     else self.subtitlesJp[ship[1]['ship_id']][ship[1]['voice_id']]
                 subtitleZh = '' if ship[1]['ship_id'] not in self.subtitlesZh or\
-                    ship[1]['voice_id'] not in self.subtitlesZh[ship[1]['ship_id']] \
+                    ship[1]['voice_id'] not in self.subtitlesZh[ship[1]['ship_id']]\
                     else self.subtitlesZh[ship[1]['ship_id']][ship[1]['voice_id']]
                 wikiCodeStr += self.generateUnitWikiCodeSeasonal(
                     ship[1]['wiki_id'], ship[1]['chinese_name'], ship[0], subtitleJp, subtitleZh
