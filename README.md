@@ -5,9 +5,7 @@ kcwiki_bot 是指一系列用于和zh.kcwiki.org交互的小工具（客户端�
 
 ### voice_bot 使用说明
 #### 配置文件 config.json
-* login_config:
-	* user_name: zh.kcwiki.moe 用户名
-	* password: zh.kcwiki.moe 密码
+
 * proxy: http代理（只支持http代理！）设置，不使用代理请删除该字段或用空字符串代替
 * voice_config:
 	* type: ''seasonal'' 表示季节性语音，''new_ship''表示追加新舰娘语音

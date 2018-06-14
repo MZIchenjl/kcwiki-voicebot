@@ -1,8 +1,11 @@
+import asyncio
 import datetime
 import json
+import getpass
 
 import aiohttp
 from aiohttp.client_exceptions import ContentTypeError
+
 from KcwikiClientException import KcwikiClientException
 
 
@@ -22,7 +25,6 @@ class KcwikiClient:
             datetime.datetime.now().strftime(r'%Y_%m_%d')
         )
         self.config = self.loadConfig()
-        self.proxy = self.config['proxy'] if 'proxy' in self.config and self.config['proxy'] else None
         self.connector = aiohttp.TCPConnector(
             verify_ssl=False,
             use_dns_cache=True
@@ -39,7 +41,6 @@ class KcwikiClient:
         return self.session.request(
             method=method,
             data=rdata, url=url,
-            proxy=self.proxy,
             timeout=timeout
         )
 
@@ -63,8 +64,8 @@ class KcwikiClient:
             'format': 'json',
             'lgtoken': self.loginToken
         }
-        rdata['lgname'] = self.config['login_config']['user_name']
-        rdata['lgpassword'] = self.config['login_config']['password']
+        rdata['lgname'] = input('Plz input your username: ')
+        rdata['lgpassword'] = getpass.getpass('Now input your password: ')
         async with self.request(self.kcwikiAPIUrl, 'POST', rdata) as resp:
             try:
                 resp_json = await resp.json()
@@ -90,8 +91,12 @@ class KcwikiClient:
 
         if self.editToken == '+\\':
             raise KcwikiClientException('Incorrect edittoken \'+\\\' !')
-        print('EditToken: ' + self.editToken)
-        print('Login Successfully!')
+        print('Login as "{}" Successfully!'.format(rdata['lgname']))
 
     def __del__(self):
-        self.connector.close()
+        loop = asyncio.get_event_loop()
+        self.session.connector.close()
+        asyncio.run_coroutine_threadsafe(self.session.close(), loop)
+
+
+__all__ = ['KcwikiClient']

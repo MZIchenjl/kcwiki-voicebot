@@ -1,9 +1,4 @@
 {
-    "login_config": {
-        "user_name": "MZI",
-        "password": ""
-    },
-    "proxy": "",
     "voice_config": {
         "type": "seasonal",
         "new_ship_id": [

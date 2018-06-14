@@ -644,3 +644,5 @@ class KcwikiVoiceClient(KcwikiClient):
             self.generateWikiCodeSeasonal()
         if self.config['voice_config']['type'] == 'new_ship':
             self.generateWikiCodeNewship()
+
+__all__ = ['KcwikiVoiceClient']
