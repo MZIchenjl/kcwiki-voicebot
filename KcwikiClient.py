@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import getpass
 import json
 
 import aiohttp
@@ -64,8 +63,9 @@ class KcwikiClient:
             'format': 'json',
             'lgtoken': self.loginToken
         }
-        rdata['lgname'] = input('Plz input your username: ')
-        rdata['lgpassword'] = getpass.getpass('Now input your password: ')
+        username = input('Plz input your username: ')
+        rdata['lgname'] = username
+        rdata['lgpassword'] = input('Now input your password: ')
         async with self.request(self.kcwikiAPIUrl, 'POST', rdata) as resp:
             try:
                 resp_json = await resp.json()
@@ -91,7 +91,7 @@ class KcwikiClient:
 
         if self.editToken == '+\\':
             raise KcwikiClientException('Incorrect edittoken \'+\\\' !')
-        print('Login as "{}" Successfully!'.format(rdata['lgname']))
+        print('Login as "{}" Successfully!'.format(username))
 
     def __del__(self):
         loop = asyncio.get_event_loop()
