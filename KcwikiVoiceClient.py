@@ -334,7 +334,6 @@ class KcwikiVoiceClient(KcwikiClient):
                 voiceCacheUrl = self.getVoiceCacheUrl(
                     shipId, voiceId, filename
                 )
-                print(voiceCacheUrl)
                 task = asyncio.ensure_future(self.downloadVoiceById(
                     ship, voiceId, voiceCacheUrl
                 ))
