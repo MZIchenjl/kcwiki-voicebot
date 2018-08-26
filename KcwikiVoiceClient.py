@@ -17,11 +17,12 @@ class KcwikiVoiceClient(KcwikiClient):
     # http://203.104.209.150/kcs/sound/
     voiceCacheBaseUrl = 'http://203.104.209.150/kcs/sound/'
     vcKey = [
-        604825, 607300, 613847, 615318, 624009, 631856, 635451, 637218, 640529, 643036, 652687,
-        658008, 662481, 669598, 675545, 685034, 687703, 696444, 702593, 703894, 711191, 714166,
-        720579, 728970, 738675, 740918, 743009, 747240, 750347, 759846, 764051, 770064, 773457,
-        779858, 786843, 790526, 799973, 803260, 808441, 816028, 825381, 827516, 832463, 837868,
-        843091, 852548, 858315, 867580, 875771, 879698, 882759, 885564, 888837, 896168
+        2475, 6547, 1471, 8691, 7847, 3595, 1767, 3311, 2507, 9651,
+        5321, 4473, 7117, 5947, 9489, 2669, 8741, 6149, 1301, 7297,
+        2975, 6413, 8391, 9705, 2243, 2091, 4231, 3107, 9499, 4205,
+        6013, 3393, 6401, 6985, 3683, 9447, 3287, 5181, 7587, 9353,
+        2135, 4947, 5405, 5223, 9457, 5767, 9265, 8191, 3927, 3061,
+        2805, 3273, 7331
     ]
     voiceId2Name = {
         1: 'Intro',         2: 'Sec1',          3: 'Sec2',          4: 'Sec3',
@@ -122,8 +123,7 @@ class KcwikiVoiceClient(KcwikiClient):
         print('kcdata is updated!')
 
     def getVoiceCacheUrl(self, shipId, voiceId, filename):
-        voiceCacheId = (shipId + 7) * 17 * \
-            (self.vcKey[voiceId] - self.vcKey[voiceId - 1]) % 99173 + 100000
+        voiceCacheId = (shipId + 7) * 17 * self.vcKey[voiceId - 1] % 99173 + 100000
         return '{}kc{}/{}.mp3'.format(self.voiceCacheBaseUrl, filename, voiceCacheId)
 
     def isUpdate(self, modifiedDate):
@@ -334,6 +334,7 @@ class KcwikiVoiceClient(KcwikiClient):
                 voiceCacheUrl = self.getVoiceCacheUrl(
                     shipId, voiceId, filename
                 )
+                print(voiceCacheUrl)
                 task = asyncio.ensure_future(self.downloadVoiceById(
                     ship, voiceId, voiceCacheUrl
                 ))
