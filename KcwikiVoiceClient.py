@@ -436,7 +436,7 @@ class KcwikiVoiceClient(KcwikiClient):
         )
         await self.login()
         num = 0
-        for shipId in self.voiceDataJson:
+        for shipId in sorted(self.voiceDataJson):
             if len(self.downloadIncludeId) > 0 and\
                     int(shipId) not in self.downloadIncludeId:
                 continue
