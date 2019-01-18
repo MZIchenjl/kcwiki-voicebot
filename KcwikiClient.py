@@ -24,6 +24,9 @@ class KcwikiClient:
             datetime.datetime.now().strftime(r'%Y_%m_%d')
         )
         self.config = self.loadConfig()
+        self.proxy = None
+        if 'proxy' in self.config and self.config['proxy']:
+            self.proxy = self.config['proxy']
         self.connector = aiohttp.TCPConnector(
             verify_ssl=False,
             use_dns_cache=True
@@ -40,7 +43,8 @@ class KcwikiClient:
         return self.session.request(
             method=method,
             data=rdata, url=url,
-            timeout=timeout
+            timeout=timeout,
+            proxy=self.proxy
         )
 
     async def login(self):
