@@ -16,6 +16,7 @@ from KcwikiClientException import KcwikiClientException
 class KcwikiVoiceClient(KcwikiClient):
     # http://203.104.209.150/kcs/sound/
     voiceCacheBaseUrl = 'http://203.104.209.150/kcs/sound/'
+    start2Url = 'https://acc.kcwiki.org/start2'
     vcKey = [
         2475, 6547, 1471, 8691, 7847, 3595, 1767, 3311, 2507, 9651,
         5321, 4473, 7117, 5947, 9489, 2669, 8741, 6149, 1301, 7297,
@@ -86,6 +87,7 @@ class KcwikiVoiceClient(KcwikiClient):
         self.voiceIdRange = self.config['download_config']['voice_id_range']
 
         self.voiceDataJsonFile = 'voice_data.json'
+        self.api_mst_shipgraph = {}
 
         if not os.path.exists(self.voiceDataJsonFile):
             with open(self.voiceDataJsonFile, 'w') as fp:
@@ -114,10 +116,18 @@ class KcwikiVoiceClient(KcwikiClient):
 
         self.retryCount = 0
 
+    async def initStart2(self):
+        print('initializing start2')
+        async with self.request(self.start2Url, timeout=None) as resp:
+            resp_json = await resp.json()
+            for ship in resp_json['api_mst_shipgraph']:
+                self.api_mst_shipgraph[ship['api_id']] = ship['api_filename']
+        print('start2 data is ok')
+
     async def loadKCData(self):
         if self.kcdataJson:
             return
-        print('loading kcdata.')
+        print('loading kcdata')
         async with self.request(self.kcdataUrl, timeout=None) as resp:
             self.kcdataJson = await resp.json()
         print('kcdata is updated!')
@@ -127,19 +137,18 @@ class KcwikiVoiceClient(KcwikiClient):
         return '{}kc{}/{}.mp3'.format(self.voiceCacheBaseUrl, filename, voiceCacheId)
 
     def isUpdate(self, modifiedDate):
-        return True
-        # if self.voiceType == 'new_ship':
-        #     return True
-        # if not modifiedDate:
-        #     return True
-        # modifiedDateTime = datetime.datetime.strptime(
-        #     modifiedDate, self.GMT_FORMAT)
-        # botDateTime = datetime.datetime.strptime(
-        #     self.config['voice_config']['update_date'], self.BOT_FORMAT)
-        # if modifiedDateTime >= botDateTime:
-        #     return True
-        # else:
-        #     return False
+        if self.voiceType == 'new_ship':
+            return True
+        if not modifiedDate:
+            return True
+        modifiedDateTime = datetime.datetime.strptime(
+            modifiedDate, self.GMT_FORMAT)
+        botDateTime = datetime.datetime.strptime(
+            self.config['voice_config']['update_date'], self.BOT_FORMAT)
+        if modifiedDateTime >= botDateTime:
+            return True
+        else:
+            return False
 
     def __get_voiceName(self, filename):
         archName = self.FILENAME_PATTERN.match(filename).group(1)
@@ -274,6 +283,7 @@ class KcwikiVoiceClient(KcwikiClient):
         sys.stdout.flush()
 
     async def downloadVoice(self):
+        await self.initStart2()
         await self.loadKCData()
         self.downloadVoiceLog = open(
             'log_download_voice_' + self.timestamp + '.log', 'w', encoding='utf-8'
@@ -313,7 +323,7 @@ class KcwikiVoiceClient(KcwikiClient):
                     num += 1
                     continue
 
-            filename = ship['filename']
+            filename = self.api_mst_shipgraph[shipId]
 
             printResult = '{}({}): '.format(shipId, chineseName)
             sys.stdout.write('\nNo.{}-{}'.format(num, printResult))
