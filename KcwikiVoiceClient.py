@@ -127,18 +127,19 @@ class KcwikiVoiceClient(KcwikiClient):
         return '{}kc{}/{}.mp3'.format(self.voiceCacheBaseUrl, filename, voiceCacheId)
 
     def isUpdate(self, modifiedDate):
-        if self.voiceType == 'new_ship':
-            return True
-        if not modifiedDate:
-            return True
-        modifiedDateTime = datetime.datetime.strptime(
-            modifiedDate, self.GMT_FORMAT)
-        botDateTime = datetime.datetime.strptime(
-            self.config['voice_config']['update_date'], self.BOT_FORMAT)
-        if modifiedDateTime >= botDateTime:
-            return True
-        else:
-            return False
+        return True
+        # if self.voiceType == 'new_ship':
+        #     return True
+        # if not modifiedDate:
+        #     return True
+        # modifiedDateTime = datetime.datetime.strptime(
+        #     modifiedDate, self.GMT_FORMAT)
+        # botDateTime = datetime.datetime.strptime(
+        #     self.config['voice_config']['update_date'], self.BOT_FORMAT)
+        # if modifiedDateTime >= botDateTime:
+        #     return True
+        # else:
+        #     return False
 
     def __get_voiceName(self, filename):
         archName = self.FILENAME_PATTERN.match(filename).group(1)
@@ -458,6 +459,19 @@ class KcwikiVoiceClient(KcwikiClient):
                 }
                 async with self.request(self.kcwikiAPIUrl, 'POST', rdata) as resp:
                     resp_json = await resp.json()
+                    if 'error' in resp_json:
+                        resultPrint = '{}({}) : {} -> Failed'.format(
+                            shipId, chineseName, wikiFilename
+                        )
+                        resp_text = await resp.text()
+                        self.voiceDataJson[shipId]['voice_status'][voiceId] = 'errors'
+                        self.voiceDataJson[shipId]['voice_upload_info'].\
+                            update({voiceId: resp_json['error']})
+                        self.uploadVoiceLog.write('{}\n\t{}\n'.format(resultPrint, resp_text))
+                        print('{}\t{}\n\t{}'.format(
+                            num, resultPrint, resp_text
+                        ))
+                        continue
                     result = resp_json['upload']['result']
                     if result == 'Success':
                         resultPrint = '{}({}) : {} -> Success'.format(
