@@ -63,7 +63,7 @@ class KcwikiVoiceClient(KcwikiClient):
     GMT_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
     BOT_FORMAT = '%Y%m%d'
 
-    FILENAME_PATTERN = re.compile(r'[0-9a-z]+-(\S+)\.mp3')
+    FILENAME_PATTERN = re.compile(r'[0-9a-z]+-(\S+)\.mp3$')
 
     def __init__(self):
         super().__init__()
@@ -591,6 +591,7 @@ class KcwikiVoiceClient(KcwikiClient):
 
     def generateWikiCodeSeasonal(self):
         #! ship types range
+        common_voiceNames = list(self.voiceId2Name.values())
         oldUnitList = [{} for i in range(23)]
         newUnitList = [{} for i in range(23)]
         for shipId in self.voiceDataJson:
@@ -616,15 +617,17 @@ class KcwikiVoiceClient(KcwikiClient):
                     })
                 if voiceStatus == 'duplicate_2':
                     duplicatedWikiFilename = self.voiceDataJson[shipId]['voice_duplicate'][voiceId][0]
-                    oldUnitList[stype].update({
-                        duplicatedWikiFilename[:-4]:
-                        {
-                            'ship_id': shipId,
-                            'voice_id': voiceId,
-                            'wiki_id': wikiId,
-                            'chinese_name': chineseName
-                        }
-                    })
+                    archName = self.FILENAME_PATTERN.match(duplicatedWikiFilename).group(1)
+                    if archName and archName not in common_voiceNames:
+                        oldUnitList[stype].update({
+                            duplicatedWikiFilename[:-4]:
+                            {
+                                'ship_id': shipId,
+                                'voice_id': voiceId,
+                                'wiki_id': wikiId,
+                                'chinese_name': chineseName
+                            }
+                        })             
         self.generateSectionWikiCode(oldUnitList, '_old')
         self.generateSectionWikiCode(newUnitList, '')
 
