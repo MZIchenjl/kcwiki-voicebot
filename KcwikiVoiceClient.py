@@ -450,7 +450,6 @@ class KcwikiVoiceClient(KcwikiClient):
         num = 0
         shopIds = list(self.voiceDataJson.keys())
         shopIds.sort(key=lambda x: int(x, 10))
-        print(shopIds)
         for shipId in shopIds:
             if len(self.downloadIncludeId) > 0 and\
                     int(shipId) not in self.downloadIncludeId:
