@@ -130,6 +130,7 @@ class KcwikiVoiceClient(KcwikiClient):
         print('loading kcdata')
         async with self.request(self.kcdataUrl, timeout=None) as resp:
             self.kcdataJson = await resp.json()
+            self.kcdataJson.sort(key=lambda s: s['id'])
         print('kcdata is updated!')
 
     def getVoiceCacheUrl(self, shipId, voiceId, filename):
@@ -238,7 +239,7 @@ class KcwikiVoiceClient(KcwikiClient):
                     update({voiceId: wikiFilename})
                 self.voiceDataJson[shipId]['voice_hash_info'].\
                     update({voiceId: md5Hash})
-                sys.stdout.write('{}(y)  '.format(voiceId))
+            sys.stdout.write('{}(y)  '.format(voiceId))
         elif result == 2:
             if shipId not in self.voiceDataJson.keys():
                 self.voiceDataJson[shipId] = \
@@ -270,7 +271,7 @@ class KcwikiVoiceClient(KcwikiClient):
                     update({voiceId: wikiFilename})
                 self.voiceDataJson[shipId]['voice_hash_info'].\
                     update({voiceId: md5Hash})
-                sys.stdout.write('{}(-)  '.format(voiceId))
+            sys.stdout.write('{}(-)  '.format(voiceId))
         else:
             try:
                 self.voiceDataJson[shipId]['voice_status'].pop(voiceId)
@@ -447,7 +448,10 @@ class KcwikiVoiceClient(KcwikiClient):
         )
         await self.login()
         num = 0
-        for shipId in sorted(self.voiceDataJson):
+        shopIds = list(self.voiceDataJson.keys())
+        shopIds.sort(key=lambda x: int(x, 10))
+        print(shopIds)
+        for shipId in shopIds:
             if len(self.downloadIncludeId) > 0 and\
                     int(shipId) not in self.downloadIncludeId:
                 continue
